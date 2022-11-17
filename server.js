@@ -10,7 +10,7 @@ require('dotenv').config();
 
 const cors = require('cors');
 
-const { nextTick } = require('process');
+// const { nextTick } = require('process');
 
 const app = express();
 
@@ -22,7 +22,7 @@ app.get('/', (request, response) => {
   response.send('hello from our server');
 });
 
-app.get('/weather', (request, response) => {
+app.get('/weather', (request, response, next) => {
   // let latitude = request.query.lat;
   // let longitude = request.query.lon;
   try{
