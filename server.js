@@ -8,7 +8,13 @@ const data = require('./data/weather.json');
 
 require('dotenv').config();
 
+const cors = require('cors');
+
+const { nextTick } = require('process');
+
 const app = express();
+
+app.use(cors());
 
 const PORT = process.env.PORT || 3002;
 
@@ -19,33 +25,35 @@ app.get('/', (request, response) => {
 app.get('/weather', (request, response) => {
   // let latitude = request.query.lat;
   // let longitude = request.query.lon;
-  let cityName = request.query.city_name;
+  try{
+    let cityName = request.query.city_name;
 
-  let selectedCity = data.find(city => city.city_name === cityName);
-  let filterCity = new City(selectedCity);
-  let cityForecast = new Forecast(selectedCity);
-  response.send(filterCity);
+    let selectedCity = data.find(city => city.city_name === cityName);
+
+    if (selectedCity === undefined){
+      throw(500);
+    }
+
+    let forecastArr = selectedCity.data.map(day => new Forecast(day));
+
+    response.send(forecastArr);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('*', (request, response) => {
   response.send('that route does not exist');
 });
 
-class City {
-  constructor(cityObject){
-    this.lat = cityObject.lat;
-    this.lon = cityObject.lon;
-    this.city = cityObject.city_name;
-    this.date = cityObject.datetime;
-    this.description = cityObject.description;
-  }
-}
+app.use((err, req, response, next) => {
+  response.status(500).send(err.message);
+});
 
 class Forecast {
-  constructor(forecastObject){
-    this.date = forecastObject.datetime;
-    this.description = forecastObject.description;
-    this.city = forecastObject.city_name;
+  constructor(forecastDay){
+    this.date = forecastDay.valid_date;
+    this.description = forecastDay.weather.description;
   }
 }
 
