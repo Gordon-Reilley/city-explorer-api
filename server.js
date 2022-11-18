@@ -34,6 +34,26 @@ app.get('/weather', async (request, response, next) =>{
   }
 });
 
+app.get('/movie', async (request, response, next) =>{
+  try{
+    let movieSearch = request.query.search;
+
+    let movieURL = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${movieSearch}`;
+    let newMovie = await axios.get(movieURL);
+
+    let topMovies = newMovie.data.results.map(movieObj => new Movie(movieObj));
+
+    response.send(topMovies);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('*', (request, response) => {
+  response.send('that route does not exist');
+});
+
+
 app.get('*', (request, response) => {
   response.send('that route does not exist');
 });
@@ -46,6 +66,15 @@ class Forecast {
   constructor(forecast){
     this.date = forecast.datetime;
     this.description = `Low of: ${forecast.low_temp} High of: ${forecast.high_temp} with ${forecast.weather.description}`;
+  }
+}
+
+class Movie {
+  constructor(movie){
+    this.releaseDate = movie.release_date;
+    this.title = movie.title;
+    this.overview = movie.overview;
+    this.posterImg = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
   }
 }
 
